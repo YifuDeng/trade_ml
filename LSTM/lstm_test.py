@@ -64,7 +64,7 @@ class preprocessing():
         self.close_min_down = bar_data['down'].min()
         self.close_max_down = bar_data["down"].max()
         self.bar_data = bar_data.apply(lambda x: (x - np.min(x)) / (np.max(x) - np.min(x)))
-        return self.bar_data
+        return bar_data
 
     def create_dataset(self, bar_data, sequence_length):
         total_len = len(bar_data)
@@ -83,8 +83,44 @@ class preprocessing():
         train_loader = DataLoader(dataset=Mydataset(trainx, trainy, transform=transforms.ToTensor()), batch_size=12,
                                   shuffle=True)
         test_loader = DataLoader(dataset=Mydataset(testx, testy), batch_size=12, shuffle=True)
-        return train_loader,test_loader
+        return train_loader, test_loader
 
+
+def turn_around(model, array, seq, num):
+    position = 0.0
+    profit = 0.0
+    total_profit = 0.0
+    trade_volume = 0.0
+    total_profit_list = [total_profit]
+    position_list = [position]
+    for i in range(len(array) - seq):
+        x = array[i: i+seq]
+        x = x.unsqueeze(0)
+
+        pred = model(x)
+        pre_up = pred[0][0].item() * (1-position)
+        pre_down = pred[0][1].item() * (1+position)
+        real_up = array[i + seq][2].item()
+        real_down = array[i + seq][3].item()
+        open_price = array[i + seq][0].item()
+        close_price = array[i + seq][1].item()
+        if pre_up < real_up:
+            position -= num
+            profit += (open_price + pre_up) * num
+            trade_volume += (open_price + pre_up) * num
+        if pre_down < real_down:
+            position += num
+            profit -= (open_price - pre_down) * num
+            trade_volume += (open_price - pre_down) * num
+        total_profit = position * close_price + profit + trade_volume*0.0001
+        total_profit_list.append(total_profit)
+        position_list.append(position)
+    print(position_list[-100:])
+    plt.plot(position_list)
+    plt.show()
+    print(total_profit_list[-100:])
+    plt.plot(total_profit_list)
+    plt.show()
 
 
 class Mydataset(Dataset):
@@ -131,69 +167,69 @@ if __name__ == "__main__":
     da = preprocessing('ETHBUSD')
     bar_data = da.get_standart_data('2022-05-01', '2022-06-10', '1m')
     print(bar_data)
-    train_loader, test_loader = da.create_dataset(bar_data, sequence_length=20)
+    # train_loader, test_loader = da.create_dataset(bar_data, sequence_length=20)
 
+    model = torch.load('lstm_price.pt')
 
-    model = lstm()
+    test_array = np.array(bar_data, dtype=np.float32)
+    test_tensor = torch.from_numpy(test_array)
+    print(test_tensor)
+    # criterion = nn.MSELoss()
+    # optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-    criterion = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
-
-    preds = []
-    labels = []
-    for i in range(500):
-        total_loss = 0
-        for idx, (data, label) in enumerate(train_loader):
-            # print('data: ' + str(data.shape))
-            data1 = data.squeeze(1)
-            # print('data1: ' + str(data1.shape))
-            pred = model(Variable(data1))
-            label = label
-            # print('label: ' + str(label.shape))
-            # print('pred: '+str(pred.shape))
-            loss = criterion(pred, label)
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-            total_loss += loss.item()
-        print(i)
-        print(total_loss)
+    # preds = []
+    # labels = []
+    # for idx, (x, label) in enumerate(test_loader):
+    #     x = x.squeeze(1)  # batch_size,seq_len,input_size
+    #     pred = model(x)
+    #     preds.extend(pred.data.squeeze(1).tolist())
+    #     label = label
+    #     labels.extend(label.tolist())
+    # # print(da.Evaluate(np.array(labels), np.array(preds)))
     #
     #
+    # close_max_up = da.close_max_up
+    # close_min_up = da.close_min_up
+    # close_max_down = da.close_max_down
+    # close_min_down = da.close_min_down
     #
-    # 开始测试
+    # p1 = np.array([close_max_up - close_min_up, close_max_down-close_min_down], dtype=float)
+    # p2 = np.array([close_min_up, close_min_down], dtype=float)
+    # # print(p1)
+    # # print(p2)
+    # # print(np.array(preds[0:50]) * p1 + p2)
+    # # print(np.array(labels[0:50]) * p1 + p2)
+    # print(da.Evaluate(np.array(labels) * p1 + p2, np.array(preds) * p1 + p2))
+    #
+    # for idx, (x, label) in enumerate(train_loader):
+    #     x = x.squeeze(1)  # batch_size,seq_len,input_size
+    #     pred = model(x)
+    #     preds.extend(pred.data.squeeze(1).tolist())
+    #     label = label
+    #     labels.extend(label.tolist())
+    # # print(da.Evaluate(np.array(labels), np.array(preds)))
+    #
+    #
+    # close_max_up = da.close_max_up
+    # close_min_up = da.close_min_up
+    # close_max_down = da.close_max_down
+    # close_min_down = da.close_min_down
+    #
+    # p1 = np.array([close_max_up - close_min_up, close_max_down-close_min_down], dtype=float)
+    # p2 = np.array([close_min_up, close_min_down], dtype=float)
+    # # print(p1)
+    # # print(p2)
+    # # print(np.array(preds[0:50]) * p1 + p2)
+    # # print(np.array(labels[0:50]) * p1 + p2)
+    # print(da.Evaluate(np.array(labels) * p1 + p2, np.array(preds) * p1 + p2))
 
-    preds = []
-    labels = []
-    for idx, (x, label) in enumerate(test_loader):
-        x = x.squeeze(1)  # batch_size,seq_len,input_size
-        pred = model(x)
-        preds.extend(pred.data.squeeze(1).tolist())
-        label = label
-        labels.extend(label.tolist())
-    print(da.Evaluate(np.array(labels), np.array(preds)))
 
-
-    close_max_up = da.close_max_up
-    close_min_up = da.close_min_up
-    close_max_down = da.close_max_down
-    close_min_down = da.close_min_down
-
-    p1 = np.array([close_max_up - close_min_up, close_max_down-close_min_down], dtype=float)
-    p2 = np.array([close_min_up, close_min_down], dtype=float)
-    print(p1)
-    print(p2)
-    # print(np.array(preds[0:50]) * p1 + p2)
-    # print(np.array(labels[0:50]) * p1 + p2)
-    print(da.Evaluate(np.array(labels) * p1 + p2, np.array(preds) * p1 + p2))
-
-    plt.plot([ele * p1 + p2 for ele in np.array(preds[0:50])], "r", label="pred")
-    plt.plot([ele * p1 + p2 for ele in np.array(labels[0:50])], "b", label="real")
-    plt.savefig('a.png')
-    plt.show()
-    ele = preds[0]
-    ele1 = labels[0]
-    print(ele1 * p1 + p2)
-    print(ele * p1 + p2)
-
-    torch.save(model, 'lstm_price.pt')
+    # plt.plot([ele * p1 + p2 for ele in np.array(preds[0:50])], "r", label="pred")
+    # plt.plot([ele * p1 + p2 for ele in np.array(labels[0:50])], "b", label="real")
+    # plt.savefig('b.png')
+    # plt.show()
+    # ele = preds[0]
+    # ele1 = labels[0]
+    # print(ele1 * p1 + p2)
+    # print(ele * p1 + p2)
+    turn_around(model, test_tensor, 20, 0.01)
