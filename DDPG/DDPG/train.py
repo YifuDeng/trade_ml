@@ -22,20 +22,21 @@ def train(cfg, env, agent):
             i_step += 1
             action = agent.choose_action(state)
 
-            # action = ou_noise.get_action(action, i_step)
+            action = ou_noise.get_action(action, i_step)
 
             next_state, reward, done, _ = env.step(action)
             ep_reward += reward
             agent.memory.push(state, action, reward, next_state, done)
             agent.update()
             state = next_state
-        if (i_ep+1)%10 == 0:
+        if (i_ep+1)%1 == 0:
             print('回合：{}/{}，奖励：{:.2f}'.format(i_ep+1, cfg.train_eps, ep_reward))
         rewards.append(ep_reward)
         if ma_rewards:
             ma_rewards.append(0.9*ma_rewards[-1]+0.1*ep_reward)
         else:
             ma_rewards.append(ep_reward)
+
     print('完成训练！')
     return rewards, ma_rewards
 

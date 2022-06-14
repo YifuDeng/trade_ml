@@ -106,10 +106,6 @@ class TradeEnv(gym.Env):
         return state
 
     def step(self, action):
-        print(self.current_step)
-        print(action)
-        print(self.total_profit)
-
         # 在环境中执行一步
         last_inventory = self.inventory
         last_balance = self.balance
