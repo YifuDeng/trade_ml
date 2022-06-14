@@ -4,7 +4,7 @@ curr_path = os.path.dirname(os.path.abspath(__file__))  # 当前文件所在绝�
 parent_path = os.path.dirname(curr_path)  # 父路径
 sys.path.append(parent_path)  # 添加路径到系统路径
 
-from easyrl.codes.DDPG.env import OUNoise
+from DB_ML.DDPG.DDPG.env import OUNoise
 
 def train(cfg, env, agent):
     print('开始训练！')
@@ -21,7 +21,9 @@ def train(cfg, env, agent):
         while not done:
             i_step += 1
             action = agent.choose_action(state)
-            action = ou_noise.get_action(action, i_step) 
+
+            # action = ou_noise.get_action(action, i_step)
+
             next_state, reward, done, _ = env.step(action)
             ep_reward += reward
             agent.memory.push(state, action, reward, next_state, done)

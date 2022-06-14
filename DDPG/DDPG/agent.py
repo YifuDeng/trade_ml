@@ -48,7 +48,7 @@ class Actor(nn.Module):
         out, (hidden, cell) = self.rnn(x)
         a, b, c = hidden.shape
         #hidder: 1 * batch_size * hidden_size
-        out = F.relu(self.linear(hidden.reshape(a * b, c)))
+        out = self.linear(hidden.reshape(a * b, c))
         #out: batch_size * output_size
 
         return out
@@ -99,7 +99,8 @@ class DDPG:
     def choose_action(self, state):
         state = torch.FloatTensor(state).unsqueeze(0).to(self.device)
         action = self.actor(state)
-        return action.detach().cpu().numpy()[0, 0]
+        action = action.detach().cpu().numpy()[0]
+        return action
 
     def update(self):
         if len(self.memory) < self.batch_size: # 当 memory 中不满足一个批量时，不更新策略

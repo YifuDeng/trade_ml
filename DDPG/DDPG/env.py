@@ -84,7 +84,7 @@ class TradeEnv(gym.Env):
         # 动作的格式为: buy %, sell %, hold, 等
         self.action_space = spaces.Box(
             low=np.array([0, 0]),
-            high=np.array([0.1, 0.1]),
+            high=np.array([1, 1]),
             dtype=np.float32
         )
 
@@ -130,11 +130,11 @@ class TradeEnv(gym.Env):
                  (last_balance + last_inventory * close_price) - \
                  (abs(self.inventory) - abs(last_inventory)) * close_price * self.penalty
 
-        print(close_price)
-        print([action_up, action_down])
-        print([up, down])
-        print(self.inventory)
-        print(reward)
+        # print(close_price)
+        # print([action_up, action_down])
+        # print([up, down])
+        # print(self.inventory)
+        # print(reward)
         self.array[self.current_step, 5] = self.inventory
 
         self.current_step += 1

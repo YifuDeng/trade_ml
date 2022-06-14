@@ -19,8 +19,8 @@ import torch
 from DB_ML.DDPG.DDPG.env import NormalizedActions, TradeEnv
 from DB_ML.DDPG.DDPG.agent import DDPG
 from DB_ML.DDPG.DDPG.train import train,test
-from easyrl.codes.common.utils import save_results,make_dir
-from easyrl.codes.common.utils import plot_rewards
+from DB_ML.DDPG.DDPG.common.utils import save_results,make_dir
+from DB_ML.DDPG.DDPG.common.utils import plot_rewards
 
 curr_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")  # 获取当前时间
 algo_name = 'DDPG'  # 算法名称
@@ -31,13 +31,15 @@ class DDPGConfig:
         self.algo_name = algo_name # 算法名称
         self.env_name = env_name # 环境名称
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu") # 检测GPU
-        self.train_eps = 300 # 训练的回合数
-        self.test_eps = 50 # 测试的回合数
+        # self.train_eps = 300 # 训练的回合数
+        # self.test_eps = 50 # 测试的回合数
+        self.train_eps = 50 # 训练的回合数
+        self.test_eps = 5 # 测试的回合数
         self.gamma = 0.99 # 折扣因子
-        # self.critic_lr = 1e-3 # 评论家网络的学习率
-        # self.actor_lr = 1e-4 # 演员网络的学习率
-        self.critic_lr = 0.01 # 评论家网络的学习率
-        self.actor_lr = 0.01 # 演员网络的学习率
+        self.critic_lr = 1e-3 # 评论家网络的学习率
+        self.actor_lr = 1e-4 # 演员网络的学习率
+        # self.critic_lr = 0.01 # 评论家网络的学习率
+        # self.actor_lr = 0.01 # 演员网络的学习率
         self.memory_capacity = 8000 # 经验回放的容量
         self.batch_size = 128 # mini-batch SGD中的批量大小
         self.target_update = 2 # 目标网络的更新频率
@@ -70,7 +72,7 @@ from pre import preprocessing, Mydataset
 
 pd.set_option('display.max_columns', None)
 da = preprocessing('ETHBUSD')
-bar_data = da.get_standart_data('2022-06-08', '2022-06-10', '1m')
+bar_data = da.get_standart_data('2022-06-09', '2022-06-10', '1m')
 print(bar_data)
 
 
