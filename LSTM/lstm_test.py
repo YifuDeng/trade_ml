@@ -98,8 +98,11 @@ def turn_around(model, array, seq, num):
         x = x.unsqueeze(0)
 
         pred = model(x)
-        pre_up = pred[0][0].item() * (1-position)
-        pre_down = pred[0][1].item() * (1+position)
+        #
+        # pre_up = pred[0][0].item() * (1-3*position)
+        # pre_down = pred[0][1].item() * (1+3*position)
+        pre_up = pred[0][0].item()
+        pre_down = pred[0][1].item()
         real_up = array[i + seq][2].item()
         real_down = array[i + seq][3].item()
         open_price = array[i + seq][0].item()
@@ -171,7 +174,7 @@ if __name__ == "__main__":
 
     model = torch.load('lstm_price.pt')
 
-    test_array = np.array(bar_data, dtype=np.float32)
+    test_array = np.array(bar_data, dtype=np.float32)[int(0.7 * len(bar_data)):]
     test_tensor = torch.from_numpy(test_array)
     print(test_tensor)
     # criterion = nn.MSELoss()

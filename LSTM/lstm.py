@@ -119,9 +119,12 @@ class lstm(nn.Module):
         self.linear = nn.Linear(self.hidden_size, self.output_size)
 
     def forward(self, x):
+        print(x.shape)
         out, (hidden, cell) = self.rnn(x)  # x.shape : batch,seq_len,hidden_size , hn.shape and cn.shape : num_layes * direction_numbers,batch,hidden_size
         a, b, c = hidden.shape
+        print(hidden.shape)
         out = self.linear(hidden.reshape(a * b, c))
+        print(out.shape)
         return out
 
 if __name__ == "__main__":
@@ -148,6 +151,7 @@ if __name__ == "__main__":
             data1 = data.squeeze(1)
             # print('data1: ' + str(data1.shape))
             pred = model(Variable(data1))
+
             label = label
             # print('label: ' + str(label.shape))
             # print('pred: '+str(pred.shape))
@@ -168,6 +172,7 @@ if __name__ == "__main__":
     for idx, (x, label) in enumerate(test_loader):
         x = x.squeeze(1)  # batch_size,seq_len,input_size
         pred = model(x)
+
         preds.extend(pred.data.squeeze(1).tolist())
         label = label
         labels.extend(label.tolist())
@@ -189,11 +194,11 @@ if __name__ == "__main__":
 
     plt.plot([ele * p1 + p2 for ele in np.array(preds[0:50])], "r", label="pred")
     plt.plot([ele * p1 + p2 for ele in np.array(labels[0:50])], "b", label="real")
-    plt.savefig('a.png')
+    # plt.savefig('a.png')
     plt.show()
     ele = preds[0]
     ele1 = labels[0]
     print(ele1 * p1 + p2)
     print(ele * p1 + p2)
 
-    torch.save(model, 'lstm_price.pt')
+    # torch.save(model, 'lstm_price.pt')
